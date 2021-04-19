@@ -38,8 +38,7 @@ void setup() {
   //  Serial.begin(115200);
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) { // Address 0x3C for 128x64
     //       Serial.println(F("SSD1306 failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
+    for (;;); // Don't proceed, loop forever
   }
   startScreen(); // 共通部分を描画
 }
