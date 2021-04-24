@@ -5,16 +5,18 @@
 */
 
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+//#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH1106.h>
 #include <Wire.h>
 
-#define SCREEN_WIDTH 128     // OLED display width
-#define SCREEN_HEIGHT 64     // OLED display height
-#define SCREEN_ADDRESS 0x3D  // OLED display address
+//#define SCREEN_WIDTH 128     // OLED display width
+//#define SCREEN_HEIGHT 64     // OLED display height
+#define SCREEN_ADDRESS 0x3C  // OLED display address
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET 4  // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#define OLED_RESET -1  // Reset pin # (or -1 if sharing Arduino reset pin)
+// Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SH1106 display(OLED_RESET);
 
 int dataBuff[200];  // データーバッファ RAMがギリギリ
 char chrBuff[5];    // 表示フォーマットバッファ
@@ -35,12 +37,7 @@ void setup() {
     pinMode(5, INPUT_PULLUP);  // トリガ極性（HIGH:Rising、LOW:Faling
     pinMode(13, OUTPUT);       // 状態表示
     //  Serial.begin(115200);
-    if (!display.begin(SSD1306_SWITCHCAPVCC,
-                       SCREEN_ADDRESS)) {  // Address 0x3C for 128x64
-        //       Serial.println(F("SSD1306 failed"));
-        for (;;)
-            ;  // Don't proceed, loop forever
-    }
+    display.begin(SH1106_SWITCHCAPVCC, SCREEN_ADDRESS);
     startScreen();  // 共通部分を描画
 }
 
@@ -114,8 +111,8 @@ void readWave() {  // 波形をメモリーに記録
 
 void waveRead_0() {  // 波形読み取り (サンプリング周期＝400us)
     hScale = " 10ms";
-    ADCSRA = ADCSRA & 0xf8;  // 下3ビットをクリア
-    ADCSRA = ADCSRA | 0x07;  // 分周比設定(arduinoのオリジナル）
+    ADCSRA = ADCSRA & 0xf8;           // 下3ビットをクリア
+    ADCSRA = ADCSRA | 0x07;           // 分周比設定(arduinoのオリジナル）
     for (int i = 0; i <= 199; i++) {  // 200データー
         dataBuff[i] = analogRead(0);  // 約115μs
         delayMicroseconds(285);       // サンプリング周期調整
@@ -124,21 +121,18 @@ void waveRead_0() {  // 波形読み取り (サンプリング周期＝400us)
 
 void waveRead_1() {  // 波形読み取り (サンプリング周期＝200us)
     hScale = "  5ms";
-    ADCSRA = ADCSRA & 0xf8;  // 下3ビットをクリア
-    ADCSRA = ADCSRA | 0x07;  // 分周比128(arduinoのオリジナル）
+    ADCSRA = ADCSRA & 0xf8;           // 下3ビットをクリア
+    ADCSRA = ADCSRA | 0x07;           // 分周比128(arduinoのオリジナル）
     for (int i = 0; i <= 199; i++) {  // 200データー
-        dataBuff[i] =
-            analogRead(0);  // 約115μs（レジスタ操作でもっと高速化が可能）
-        delayMicroseconds(85);  // サンプリング周期調整
+        dataBuff[i] = analogRead(0);  // 約115μs（レジスタ操作でもっと高速化が可能）
+        delayMicroseconds(85);        // サンプリング周期調整
     }
 }
 
 void waveRead_2() {  // 波形読み取り (サンプリング周期＝40us)
     hScale = "  1ms";
-    ADCSRA = ADCSRA & 0xf8;  // 下3ビットをクリア
-    ADCSRA =
-        ADCSRA |
-        0x04;  // 分周比16(0x1=2, 0x2=4, 0x3=8, 0x4=16, 0x5=32, 0x6=64, 0x7=128)
+    ADCSRA = ADCSRA & 0xf8;           // 下3ビットをクリア
+    ADCSRA = ADCSRA | 0x04;           // 分周比16(0x1=2, 0x2=4, 0x3=8, 0x4=16, 0x5=32, 0x6=64, 0x7=128)
     for (int i = 0; i <= 199; i++) {  // 200データー
         dataBuff[i] = analogRead(0);  // 約16μs
         delayMicroseconds(24);        // サンプリング周期調整
@@ -148,9 +142,7 @@ void waveRead_2() {  // 波形読み取り (サンプリング周期＝40us)
 void waveRead_3() {  // 波形読み取り (サンプリング周期＝8us)
     hScale = "200us";
     ADCSRA = ADCSRA & 0xf8;  // 下3ビットをクリア
-    ADCSRA =
-        ADCSRA |
-        0x02;  // 分周比:4(0x1=2, 0x2=4, 0x3=8, 0x4=16, 0x5=32, 0x6=64, 0x7=128)
+    ADCSRA = ADCSRA | 0x02;  // 分周比:4(0x1=2, 0x2=4, 0x3=8, 0x4=16, 0x5=32, 0x6=64, 0x7=128)
     for (int i = 0; i <= 199; i++) {
         dataBuff[i] = analogRead(0);  // 約6μs
         // 時間調整　1.875μs（nop 1つで1クロック、0.0625μs @16MHz)
@@ -213,22 +205,19 @@ void dataAnalize() {  // 作図のために最大最小値を求める
     if (rangeMin < 0) {
         rangeMin = 0;  // 但し下限は0
     }
-    rangeMax = dataMax + 20;  // 表示レンジ上限を+20上に設定
+    rangeMax = dataMax + 20;                // 表示レンジ上限を+20上に設定
     rangeMax = ((rangeMax / 10) + 1) * 10;  // 切り上げで10ステップに丸め
     if (rangeMax > 1020) {
         rangeMax = 1023;  // 但し1020以上なら1023で抑える
     }
     // トリガ位置を探す
-    for (trigP = 49; trigP < 150;
-         trigP++) {  // データー範囲の中央で、中央値を跨いでいるポイントを探す
-        if (digitalRead(5) == HIGH) {  // トリガ極性スイッチがHIGHなら
-            if ((dataBuff[trigP - 1] < (dataMax + dataMin) / 2) &&
-                (dataBuff[trigP] >= (dataMax + dataMin) / 2)) {
+    for (trigP = 49; trigP < 150; trigP++) {  // データー範囲の中央で、中央値を跨いでいるポイントを探す
+        if (digitalRead(5) == HIGH) {         // トリガ極性スイッチがHIGHなら
+            if ((dataBuff[trigP - 1] < (dataMax + dataMin) / 2) && (dataBuff[trigP] >= (dataMax + dataMin) / 2)) {
                 break;  // 立ち上がりトリガ検出！
             }
         } else {  // HIGHでなかったら（つまりLOW）
-            if ((dataBuff[trigP - 1] > (dataMax + dataMin) / 2) &&
-                (dataBuff[trigP] <= (dataMax + dataMin) / 2)) {
+            if ((dataBuff[trigP - 1] > (dataMax + dataMin) / 2) && (dataBuff[trigP] <= (dataMax + dataMin) / 2)) {
                 break;
             }  // 立下りトリガ検出！
         }
@@ -271,7 +260,7 @@ void dispInf() {  // 文字情報の表示
     display.setCursor(96, 0);          // 波形の右上に
     display.print(chrBuff);            // 電圧の平均値を表示
 
-    if (trigSync == false) {  // トリガの検出に失敗していたら
+    if (trigSync == false) {        // トリガの検出に失敗していたら
         display.setCursor(60, 55);  // 画面の中央下に
         display.print("Unsync");    // Unsync を表示
     }

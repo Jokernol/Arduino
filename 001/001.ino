@@ -55,7 +55,7 @@ void loop() {
     plotData();                  // グラフプロット(7.4ms)
     scaleLine();                 // 目盛り線表示(1.9ms)
     dispVscale();                // 縦軸目盛り表示(3.9ms)
-    display.display();  // バッファの値を転送して表示(37ms)
+    display.display();           // バッファの値を転送して表示(37ms)
     //  digitalWrite(13, LOW);          // 処理時間合計=52ms
 }
 
@@ -93,11 +93,10 @@ void saveBuff() {  // データバッファの更新と最大・最小値の決�
     dataMin = 1023;  // 最小
     dataMax = 0;     // 最大値記録変数を初期化
 
-    for (int i = 98; i >= 0;
-         i--) {  // 配列に値を保存しながら最大と最小値を求める
+    for (int i = 98; i >= 0; i--) {  // 配列に値を保存しながら最大と最小値を求める
         d = dataBuff[i];
-        dataBuff[i + 1] = d;  // 配列のデーターを一つ後ろにずらし
-        if (d != -1) {  // ずらしたデータが有効値だったら、
+        dataBuff[i + 1] = d;    // 配列のデーターを一つ後ろにずらし
+        if (d != -1) {          // ずらしたデータが有効値だったら、
             if (d < dataMin) {  // 最小と
                 dataMin = d;
             }
@@ -106,7 +105,7 @@ void saveBuff() {  // データバッファの更新と最大・最小値の決�
             }
         }
     }
-    dataBuff[0] = latestData;  // 配列の先頭には最新データーを記録し、
+    dataBuff[0] = latestData;    // 配列の先頭には最新データーを記録し、
     if (latestData < dataMin) {  // 最小と
         dataMin = latestData;
     }
@@ -142,9 +141,8 @@ void plotData() {  // 配列の値に基づきデーターをプロット
         if (dataBuff[i] == -1) {  // データーが未定(-1)なら
             break;                // プロット中止
         }
-        yPoint =
-            map(dataBuff[i], dataMin, dataMax, 63, 9);  // プロット座標へ変換
-        display.drawPixel(125 - i, yPoint, WHITE);  // データをプロット
+        yPoint = map(dataBuff[i], dataMin, dataMax, 63, 9);  // プロット座標へ変換
+        display.drawPixel(125 - i, yPoint, WHITE);           // データをプロット
     }
 }
 
