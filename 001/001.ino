@@ -55,7 +55,8 @@ void loop() {
     plotData();                  // グラフプロット(7.4ms)
     scaleLine();                 // 目盛り線表示(1.9ms)
     dispVscale();                // 縦軸目盛り表示(3.9ms)
-    display.display();           // バッファの値を転送して表示(37ms)
+    trigVoltage();
+    display.display();  // バッファの値を転送して表示(37ms)
     //  digitalWrite(13, LOW);          // 処理時間合計=52ms
 }
 
@@ -122,7 +123,10 @@ void saveBuff() {  // データバッファの更新と最大・最小値の決�
     if (dataMax > 1020) {
         dataMax = 1023;  // 但し1020以上なら1023で抑える
     }
-    //  Serial.print(dataMin); Serial.print(", "); Serial.println(dataMax);
+    Serial.print(dataMin);
+    Serial.print(", ");
+    Serial.print(dataMax);
+    Serial.print(", ");
 }
 
 void dispNewData() {  // 最新データーの値を画面の右上に表示
@@ -161,4 +165,18 @@ void scaleLine() {  // 目盛り線を作画
 
 void timeUp() {  // MsTimer2割込み処理
     timeFlag = HIGH;
+}
+
+void trigVoltage() {
+    long y;
+    float trig;
+    trig = analogRead(1) / 1023.0 * dataMax;
+    y = map(trig, dataMin, dataMax, 63, 9);
+    y = constrain(y, 9, 63);
+    Serial.print(analogRead(1));
+    Serial.print(", ");
+    Serial.print(trig);
+    Serial.print(", ");
+    Serial.println(y);
+    display.drawFastHLine(27, y, 100, WHITE);
 }
