@@ -608,7 +608,8 @@ void startScreen() {  // Staru up screen
     oled.setTextColor(WHITE);
     oled.setCursor(10, 15);
     oled.println(F("BadGateWay"));                 // Title
-    oled.setCursor(10, 35) oled.println(F("V2"));  // Version
+    oled.setCursor(10, 35);
+    oled.println(F("V2"));                         // Version
     oled.display();                                // actual display here
     delay(1500);
     oled.clearDisplay();
