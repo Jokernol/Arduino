@@ -1,11 +1,3 @@
-/*
-  PMO-RP1 V3.0 ACレンジ追加、他修正
-  20200726_OLEDoscilloscopeSh1106_V300E.ino
-  SH1106 sketch:24246byte, local variable:209byte free
-  SD1306 sketch:26006byte,local:1223byte
-  xxx.xxx 2020 by radiopench http://radiopench.blog96.fc2.com/
-*/
-
 #include <Adafruit_GFX.h>
 #include <Wire.h>
 //#include <Adafruit_SSD1306.h>
@@ -72,7 +64,7 @@ float waveFreq;  // frequency (Hz)
 float waveDuty;  // duty ratio (%)
 
 void setup() {
-    pinMode(2, INPUT_PULLUP);   // button pussed interrupt (int.0 IRQ)
+    pinMode(2, INPUT_PULLUP);   // button pushed interrupt (int.0 IRQ)
     pinMode(7, INPUT_PULLUP);   // AC Mode
     pinMode(8, INPUT_PULLUP);   // Select button
     pinMode(9, INPUT_PULLUP);   // Up
