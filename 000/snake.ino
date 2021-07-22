@@ -7,10 +7,10 @@
 
 Adafruit_SH1106 oled(OLED_RESET);
 
-#define UP 14
-#define DOWN 15
-#define LEFT 16
-#define RIGHT 17
+#define UP 9
+#define DOWN 10
+#define LEFT 7
+#define RIGHT 8
 
 #define BOX_WIDTH 96
 #define BOX_HEIGHT 64
@@ -24,6 +24,7 @@ uint8_t food_y;                 //食物位置坐标y
 uint8_t snake_length;           //定义初始化蛇身长度
 uint8_t snake_dir = RIGHT;
 uint8_t game_speed = 90;  //设置游戏速度（数值越大，贪吃蛇移动的越慢）
+uint16_t score;
 
 void setup() {
     pinMode(2, INPUT_PULLUP);
@@ -46,14 +47,13 @@ void startScreen() {  // Staru up screen
     oled.setTextSize(2);  // at double size character
     oled.setTextColor(WHITE);
     oled.setCursor(7, 15);
-    oled.println(F("BadGateWay"));  // Title
+    oled.println(F("BadGateway"));  // Title
     oled.setTextSize(1);
     oled.setCursor(25, 45);
     oled.println(F("a simple snake"));  // Version
     oled.display();                     // actual display here
     delay(1500);
     oled.clearDisplay();
-    oled.setTextSize(1);  // After this, standard font size
 }
 
 void snake() {
@@ -64,6 +64,7 @@ void snake() {
     snake_y[1] = snake_y[0];  // snake起始坐标 //定义贪吃蛇的初始的位置以及长度；
     snake_x[2] = snake_x[1] - 1;
     snake_y[2] = snake_y[1];  // snake起始坐标
+    score = 0;                //
     game_speed = 90;
     snake_length = 3;
     snake_dir = RIGHT;
@@ -74,7 +75,10 @@ void snake() {
         delay(game_speed);  //这里是贪吃蛇调节速度的另外一个方法；
 
         if (snake_eat_food(snake_dir)) {
+            score++;
+
             food();
+
             if (snake_length < 10) {
                 game_speed = 90;
             }
@@ -115,6 +119,11 @@ void food() {
 void snake_frame() {
     oled.clearDisplay();
     oled.drawRect(0, 0, 96, 64, WHITE);
+    oled.setTextSize(1);
+    oled.setCursor(98, 12);
+    oled.println(F("score"));
+    oled.setCursor(110, 32);
+    oled.println(score);
     oled.fillRect(food_x, food_y, 2, 2, WHITE);
     for (int8_t i = 0; i < snake_length; i++) {
         oled.fillRect(snake_x[i], snake_y[i], snake_body_width, snake_body_width, WHITE);
@@ -254,27 +263,28 @@ void game_over() {
 void pin2IRQ() {
     uint8_t x;
     x = PINB;
+
     if ((x & 0x01) == 0) {
-        if (snake_dir != DOWN) {
-            snake_dir = UP;
-        }
-    }
-
-    if ((x & 0x02) == 0) {
-        if (snake_dir != UP) {
-            snake_dir = DOWN;
-        }
-    }
-
-    if ((x & 0x04) == 0) {
         if (snake_dir != RIGHT) {
             snake_dir = LEFT;
         }
     }
 
-    if ((x & 0x08) == 0) {
+    if ((x & 0x02) == 0) {
         if (snake_dir != LEFT) {
             snake_dir = RIGHT;
+        }
+    }
+
+    if ((x & 0x04) == 0) {
+        if (snake_dir != DOWN) {
+            snake_dir = UP;
+        }
+    }
+
+    if ((x & 0x08) == 0) {
+        if (snake_dir != UP) {
+            snake_dir = DOWN;
         }
     }
 }

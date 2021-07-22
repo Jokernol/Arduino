@@ -65,11 +65,12 @@ float waveDuty;  // duty ratio (%)
 
 void setup() {
     pinMode(2, INPUT_PULLUP);   // button pushed interrupt (int.0 IRQ)
-    pinMode(7, INPUT_PULLUP);   // AC Mode
-    pinMode(8, INPUT_PULLUP);   // Select button
-    pinMode(9, INPUT_PULLUP);   // Up
-    pinMode(10, INPUT_PULLUP);  // Down
-    pinMode(11, INPUT_PULLUP);  // Hold
+    pinMode(6, INPUT_PULLUP);   // AC Mode
+    pinMode(7, INPUT_PULLUP);   // hold
+    pinMode(8, INPUT_PULLUP);   // left
+    pinMode(9, INPUT_PULLUP);   // right
+    pinMode(10, INPUT_PULLUP);  // up
+    pinMode(11, INPUT_PULLUP);  // down
     pinMode(13, OUTPUT);        // LED
     pinMode(R_12k, INPUT);      // pin12 1/10 attenuator(Off=High-Z, Enable=Output Low)
     pinMode(R_820k, INPUT);     // A2
@@ -155,7 +156,7 @@ void pullGND(int n) {      // pull GND through resistor
 }
 
 void setConditions() {            // measuring condition setting
-    if (digitalRead(7) == LOW) {  // Read the input mode switch to set AC/DC
+    if (digitalRead(6) == LOW) {  // Read the input mode switch to set AC/DC
         inMode = 1;               // AC mode
     } else {
         inMode = 0;  // DC mode
@@ -606,14 +607,14 @@ void startScreen() {  // Staru up screen
     oled.clearDisplay();
     oled.setTextSize(2);  // at double size character
     oled.setTextColor(WHITE);
-    oled.setCursor(10, 15);
-    oled.println(F("BadGateWay"));                 // Title
-    oled.setCursor(10, 35);
-    oled.println(F("V2"));                         // Version
-    oled.display();                                // actual display here
+    oled.setCursor(7, 15);
+    oled.println(F("BadGateway"));  // Title
+    oled.setCursor(30, 45);
+    oled.setTextSize(1);
+    oled.println(F("Oscilloscope"));  // Version
+    oled.display();                   // actual display here
     delay(1500);
     oled.clearDisplay();
-    oled.setTextSize(1);  // After this, standard font size
 }
 
 void dispHold() {                         // display "Hold"
@@ -1034,9 +1035,11 @@ void uuPinOutputLow(unsigned int d, unsigned int a) {  // output LOW at specfied
 void pin2IRQ() {  // Pin2(int.0) interrupr handler
     // Pin8,9,10,11 buttons are bundled with diodes and connected to Pin2.
     // So, if any button is pressed, this routine will start.
-    int x;  // Port information holding variable
+    uint8_t x;  // Port information holding variable
+    uint8_t y;
 
     x = PINB;  // copy port B status
+    y = PIND;
 
     if ((x & 0x07) != 0x07) {  // if bottom 3bit is not all Hi(any wer pressed)
         saveTimer = 5000;      // set EEPROM save timer to 5 secnd
@@ -1044,31 +1047,20 @@ void pin2IRQ() {  // Pin2(int.0) interrupr handler
     }
 
     if ((x & 0x01) == 0) {  // if select button(Pin8) pushed,
+        scopeP--;           // backward scope position
+        if (scopeP < 0) {   // if upper limit
+            scopeP = 2;     // move to end position
+        }
+    }
+
+    if ((x & 0x02) == 0) {  // if select button(Pin9) pushed,
         scopeP++;           // forward scope position
         if (scopeP > 2) {   // if upper limit
             scopeP = 0;     // move to start position
         }
     }
 
-    if ((x & 0x02) == 0) {     // if UP button(Pin9) pusshed, and
-        if (scopeP == 0) {     // scoped vertical range
-            vRange++;          // V-range up !
-            if (vRange > 9) {  // if upper limit
-                vRange = 9;    // stay as is
-            }
-        }
-        if (scopeP == 1) {      // if scoped hrizontal range
-            hRange++;           // H-range up !
-            if (hRange > 11) {  // if upper limit
-                hRange = 11;    // stay as is
-            }
-        }
-        if (scopeP == 2) {  // if scoped trigger porality
-            trigD = 0;      // set trigger porality to +
-        }
-    }
-
-    if ((x & 0x04) == 0) {     // if DOWN button(Pin10) pusshed, and
+    if ((x & 0x04) == 0) {     // if UP button(Pin10) pusshed, and
         if (scopeP == 0) {     // scoped vertical range
             vRange--;          // V-range DOWN
             if (vRange < 2) {  // if bottom (Auto5V Auto50V have deleted）
@@ -1082,11 +1074,29 @@ void pin2IRQ() {  // Pin2(int.0) interrupr handler
             }
         }
         if (scopeP == 2) {  // if scoped trigger porality
-            trigD = 1;      // set trigger porality to -
+            trigD = 0;      // set trigger porality to -
         }
     }
 
-    if ((x & 0x08) == 0) {  // if HOLD button(pin11) pushed
+    if ((x & 0x08) == 0) {     // if DOWN button(Pin11) pusshed, and
+        if (scopeP == 0) {     // scoped vertical range
+            vRange++;          // V-range up !
+            if (vRange > 9) {  // if upper limit
+                vRange = 9;    // stay as is
+            }
+        }
+        if (scopeP == 1) {      // if scoped hrizontal range
+            hRange++;           // H-range up !
+            if (hRange > 11) {  // if upper limit
+                hRange = 11;    // stay as is
+            }
+        }
+        if (scopeP == 2) {  // if scoped trigger porality
+            trigD = 1;      // set trigger porality to +
+        }
+    }
+
+    if ((y & 0x80) == 0) {  // if HOLD button(pin7) pushed
         hold = !hold;       // revers the flag
     }
 }
