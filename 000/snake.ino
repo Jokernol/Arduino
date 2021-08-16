@@ -264,25 +264,25 @@ void pin2IRQ() {
     uint8_t x;
     x = PINB;
 
-    if ((x & 0x01) == 0) {
+    if ((x & 0x04) == 0) {
         if (snake_dir != RIGHT) {
             snake_dir = LEFT;
         }
     }
 
-    if ((x & 0x02) == 0) {
+    if ((x & 0x08) == 0) {
         if (snake_dir != LEFT) {
             snake_dir = RIGHT;
         }
     }
 
-    if ((x & 0x04) == 0) {
+    if ((x & 0x01) == 0) {
         if (snake_dir != DOWN) {
             snake_dir = UP;
         }
     }
 
-    if ((x & 0x08) == 0) {
+    if ((x & 0x02) == 0) {
         if (snake_dir != UP) {
             snake_dir = DOWN;
         }

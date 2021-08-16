@@ -65,18 +65,18 @@ float waveDuty;  // duty ratio (%)
 
 void setup() {
     pinMode(2, INPUT_PULLUP);   // button pushed interrupt (int.0 IRQ)
-    pinMode(6, INPUT_PULLUP);   // AC Mode
-    pinMode(7, INPUT_PULLUP);   // hold
-    pinMode(8, INPUT_PULLUP);   // left
-    pinMode(9, INPUT_PULLUP);   // right
-    pinMode(10, INPUT_PULLUP);  // up
-    pinMode(11, INPUT_PULLUP);  // down
+    pinMode(7, INPUT_PULLUP);   // AC Mode
+    pinMode(6, INPUT_PULLUP);   // hold
+    pinMode(10, INPUT_PULLUP);   // left
+    pinMode(11, INPUT_PULLUP);   // right
+    pinMode(8, INPUT_PULLUP);  // up
+    pinMode(9, INPUT_PULLUP);  // down
     pinMode(13, OUTPUT);        // LED
     pinMode(R_12k, INPUT);      // pin12 1/10 attenuator(Off=High-Z, Enable=Output Low)
     pinMode(R_820k, INPUT);     // A2
     pinMode(R_82k, INPUT);      // A3
 
-    uuPinOutputLow(0b00000001111000, 0b000000);  // output low at pin D3-D6
+    //uuPinOutputLow(0b00000001111000, 0b000000);  // output low at pin D3-D6
                                                  //  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C); // select 3C or 3D (set your OLED I2C address)
     oled.begin(SH1106_SWITCHCAPVCC, 0x3C);       // use this when SH1106
 
@@ -156,7 +156,7 @@ void pullGND(int n) {      // pull GND through resistor
 }
 
 void setConditions() {            // measuring condition setting
-    if (digitalRead(6) == LOW) {  // Read the input mode switch to set AC/DC
+    if (digitalRead(7) == LOW) {  // Read the input mode switch to set AC/DC
         inMode = 1;               // AC mode
     } else {
         inMode = 0;  // DC mode
@@ -1046,21 +1046,21 @@ void pin2IRQ() {  // Pin2(int.0) interrupr handler
         switchPushed = true;   // switch pushed falag ON
     }
 
-    if ((x & 0x01) == 0) {  // if select button(Pin8) pushed,
+    if ((x & 0x04) == 0) {  // if select button(Pin8) pushed,
         scopeP--;           // backward scope position
         if (scopeP < 0) {   // if upper limit
             scopeP = 2;     // move to end position
         }
     }
 
-    if ((x & 0x02) == 0) {  // if select button(Pin9) pushed,
+    if ((x & 0x08) == 0) {  // if select button(Pin9) pushed,
         scopeP++;           // forward scope position
         if (scopeP > 2) {   // if upper limit
             scopeP = 0;     // move to start position
         }
     }
 
-    if ((x & 0x04) == 0) {     // if UP button(Pin10) pusshed, and
+    if ((x & 0x01) == 0) {     // if UP button(Pin10) pusshed, and
         if (scopeP == 0) {     // scoped vertical range
             vRange--;          // V-range DOWN
             if (vRange < 2) {  // if bottom (Auto5V Auto50V have deleted）
@@ -1078,7 +1078,7 @@ void pin2IRQ() {  // Pin2(int.0) interrupr handler
         }
     }
 
-    if ((x & 0x08) == 0) {     // if DOWN button(Pin11) pusshed, and
+    if ((x & 0x02) == 0) {     // if DOWN button(Pin11) pusshed, and
         if (scopeP == 0) {     // scoped vertical range
             vRange++;          // V-range up !
             if (vRange > 9) {  // if upper limit
@@ -1096,7 +1096,7 @@ void pin2IRQ() {  // Pin2(int.0) interrupr handler
         }
     }
 
-    if ((y & 0x80) == 0) {  // if HOLD button(pin7) pushed
+    if ((y & 0x40) == 0) {  // if HOLD button(pin7) pushed
         hold = !hold;       // revers the flag
     }
 }
